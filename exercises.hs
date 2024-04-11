@@ -258,3 +258,98 @@ scalarproduct xs ys = sum [ xi * yi | (xi, yi) <- zip xs ys ]
 -- ---
 -- >            table' = freqs [ toLower x | x <- xs ]
 
+
+-- Chapter 6 Solutions
+
+-- Q1
+factorialHandleRec :: Int -> Int
+factorialHandleRec n | n > 0 = n * factorialHandleRec (n-1)
+                     | n == 0 = 1
+
+-- Q2
+sumdown :: Int -> Int
+sumdown 0 = 0
+sumdown n = n + sumdown (n-1)
+
+-- Q3
+(^^^) :: Int -> Int -> Int
+0 ^^^ _ = 0
+1 ^^^ _ = 1
+m ^^^ 1 = m
+m ^^^ n = m * (m ^^^ (n - 1))
+
+-- Q4
+euclid :: Int -> Int -> Int
+
+euclid m n | m == n = m
+           | m > n  = euclid (m - n) n
+           | otherwise = euclid n m
+
+-- Q5
+-- length [1,2,3] = length (1: (2: (3: [])))
+--                = 1 + length (2 : (3: []))
+--                = 1 + 1 + length (3 : [])
+--                = 1 + 1 + 1 + length []
+--                = 1 + 1 + 1 + 0
+
+-- drop 3 [1,2,3,4,5] = drop 3 [1,2,3,4,5]
+--                    = drop 2 [2,3,4,5]
+--                    = drop 1 [3,4,5]
+--                    = drop 0 [4,5]
+--                    = [4,5]
+
+-- init [1,2,3] = init (1: (2: (3: [])))
+--              = 1 : init (2: (3: []))
+--              = 1 : 2 : init [3] = 1 : 2 : init[_]
+--              = 1 : 2 : []
+--
+
+-- Q6 
+q6and :: [Bool] -> Bool
+q6and [True] = True
+q6and [False] = False
+q6and (x:xs) | x == False = False
+             | otherwise  = q6and xs
+
+q6concat :: [[a]] -> [a]
+q6concat [] = []
+q6concat ([]:xss) = q6concat xss
+q6concat ((x:xs):xss) = x : q6concat (xs : xss)
+--q6concat xss = [x | xs <- xss, x <- xs ]
+
+
+q6replicate :: Int -> a -> [a]
+q6replicate 0 _ = []
+q6replicate n a = a : q6replicate (n-1) a
+
+q6SelectNth :: [a] -> Int -> a
+q6SelectNth (x:xs) 0 = x
+q6SelectNth (x:xs) n = q6SelectNth xs (n - 1)
+
+q6elem :: Eq a => a -> [a] -> Bool
+q6elem _ [] = False
+q6elem a (x:xs) | a == x = True
+                | otherwise = q6elem a xs
+
+-- Q7
+
+merge :: Ord a => [a] -> [a] -> [a]
+merge [] [] = []
+merge [] xs = xs
+merge xs [] = xs
+merge (x:xs) (y:ys) | x < y = x : merge xs (y:ys)
+                    | otherwise = y : merge (x:xs) ys
+
+-- Q8
+
+q8halve :: [a] -> ([a],[a])
+q8halve xs = (take l xs, drop l xs)
+             where 
+               l = length xs `div` 2
+
+msort :: Ord a => [a] -> [a]
+msort [] = []
+msort [x] = [x]
+msort xs = merge (msort lHalf) (msort rHalf) where
+               (lHalf, rHalf) = q8halve xs
+
