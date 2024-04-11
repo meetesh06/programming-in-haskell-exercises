@@ -193,3 +193,68 @@ luhn a b c d = mod (sum [luhnDouble a, b, luhnDouble c, d]) 10 == 0
 concatt :: [[a]] -> [a]
 concatt xss = [x | xs <- xss, x <- xs]
 
+-- Q1
+c5q1 = sum [x^2 | x <- [1..100]]
+
+-- Q2
+grid :: Int -> Int -> [(Int,Int)]
+grid m n = [(x,y) | x <- [0..m], y <- [0..n]]
+
+-- Q3
+square :: Int -> [(Int,Int)]
+square n = [(x,y) | x <- [0..n], y <- [0..n], x /= y]
+
+-- Q4
+-- length :: [a] -> a
+-- length [] = 0
+-- length (x:xs) = 1 + length xs
+replicateCPY :: Int -> a -> [a]
+replicateCPY n a = [a | x <- [1..n]]
+
+-- Q5
+pyths :: Int -> [(Int,Int,Int)]
+pyths n = [(x,y,z) | x <- [1..n], y <- [1..n], z <- [1..n], x^2 + y^2 == z^2]
+
+-- Q6
+factors :: Int -> [Int]
+factors n = [x | x <- [1..n], mod n x == 0]
+
+perfects :: Int -> [Int]
+perfects n = [x | x <- [1..n], sum (excludedFactors x) == x] where
+             excludedFactors m = [f | f <- factors m, f /= m]
+
+-- Q7
+-- This comprehension is expressed using two generators [(x,y) | x <- [1,2], y <- [3,4]]
+-- 
+-- Re-express it using two comprehensions with a single generator
+someComprehension = concat [ [(x, y) | x <- [1,2]] | y <- [3,4]]
+
+-- Q8
+find :: Eq a => a -> [(a, b)] -> [b]
+find k t = [v' | (k', v') <- t, k' == k]
+
+positions :: Eq a => a -> [a] -> [Int]
+positions v vs = find v (zip vs [0..])
+
+-- Q9
+scalarproduct :: [Int] -> [Int] -> Int
+scalarproduct xs ys = sum [ xi * yi | (xi, yi) <- zip xs ys ]
+
+-- Q10
+-- 
+-- See caesarUpper.hs, a three line change is needed to support upper case letters
+--
+-- $ diff caesar.hs caesarUpper.hs 
+-- 5a6,7
+-- > let2intUpper c = ord c - ord 'A'
+-- > 
+-- 8a11
+-- > int2letUpper n = chr (ord 'A' + n)
+-- 11a15
+-- >           | isUpper c = int2letUpper (((let2intUpper c) + n) `mod` 26)
+-- 49,50c53
+-- <            table' = freqs xs
+-- < 
+-- ---
+-- >            table' = freqs [ toLower x | x <- xs ]
+
