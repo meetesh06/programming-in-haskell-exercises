@@ -353,3 +353,58 @@ msort [x] = [x]
 msort xs = merge (msort lHalf) (msort rHalf) where
                (lHalf, rHalf) = q8halve xs
 
+-- Q9 (TODO)
+
+-- Chapter 7
+-- snoc
+snoc :: a -> [a] -> [a]
+snoc x xs = xs ++ [x]
+
+-- Q1
+-- [ f x | x <- xs, p x]
+c7q1 f p = map f . filter p
+
+-- Q2
+-- a. (There is a typo in the book for this question)
+c7all :: (a -> Bool) -> [a] -> Bool
+c7all p = and . map p
+
+-- b. (There is a typo in the bokk for this question)
+c7any :: (a->Bool) -> [a] -> Bool
+c7any p = or . map p
+
+-- c.
+c7takeWhile :: (a -> Bool) -> [a] -> [a]
+c7takeWhile p = filter p
+
+-- d.
+c7dropWhile :: (a -> Bool) -> [a] -> [a]
+c7dropWhile p = filter (not . p)
+
+-- Q3
+c7map f = foldr (\a b -> f a : b ) []
+c7filter f = foldr (\a b -> if f a then a : b else b) []
+
+-- Q4
+c7dec2int :: [Int] -> Int
+c7dec2int = foldl (\a b -> a * 10 + b) 0
+
+-- Q5
+c7curried :: ((a,b) -> c) -> (a -> b -> c)
+c7curried f = \x -> \y -> f (x,y)
+
+-- Q6
+c7unfold p h t x | p x       = []
+               | otherwise = h x : c7unfold p h t (t x)
+
+c7int2bin = c7unfold (== 0) (`mod` 2) (`div` 2)
+-- Chapter had type for Bit
+c7chop8 :: [Int] -> [[Int]]
+c7chop8 = c7unfold (== []) (take 8) (drop 8)
+
+c7q6map :: (a -> b) -> [a] -> [b]
+c7q6map funn = c7unfold null (funn . head) (tail)
+
+c7q6iterate :: (a -> a) -> a -> [a]
+c7q6iterate = c7unfold (const False) id 
+
