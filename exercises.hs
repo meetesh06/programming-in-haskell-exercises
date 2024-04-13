@@ -408,3 +408,21 @@ c7q6map funn = c7unfold null (funn . head) (tail)
 c7q6iterate :: (a -> a) -> a -> [a]
 c7q6iterate = c7unfold (const False) id 
 
+-- Q7, Q8
+-- See binaryStringTransmitterParity.hs
+
+-- Q9 
+
+altMap :: (a->b) -> (a->b) -> [a] -> [b]
+altMap f g (x:y:xs) = f x : g y : altMap f g xs
+altMap f g (x : []) = f x : []
+altMap f g [] = []
+
+-- Q10
+--luhnDouble :: Int -> Int
+--luhnDouble x | x + x > 9 = (x + x) - 9
+--             | otherwise = x + x
+
+luhn1 :: [Int] -> Bool
+luhn1 xs = mod (sum (altMap id luhnDouble (reverse xs))) 10 == 0
+
