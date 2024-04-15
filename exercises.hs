@@ -426,3 +426,303 @@ altMap f g [] = []
 luhn1 :: [Int] -> Bool
 luhn1 xs = mod (sum (altMap id luhnDouble (reverse xs))) 10 == 0
 
+-- Chapter 8 Solutions
+--
+-- 8.1 Type declaration
+--
+-- Declaring types using existing types
+--
+-- type String = [Char]
+--
+-- type Pos = (Int,Int)
+-- type Trans = Pos -> Pos
+--
+-- type declarations cannot be rescursiv, the following is disallowed
+-- type Tree = (Int,[Tree])
+--   // If recursive types are needed, they can be added using the data mechanism'
+--
+-- Type declrations can also be parameterized by other types.
+-- Ex: If we are defining many functions that manipulate pairs of the same type we can define 
+-- type Pair a = (a,a)
+--
+-- Type declarations with more than one parameter are also allowed
+-- Ex: A type of lookup tables that associate keys of one type to values of another type:
+--
+-- type Assoc k v = [(k,v)]
+--
+-- find :: Eq k => k -> Assoc k v -> v
+-- find k t = head [v | (k',v) <- t, k == k']
+--
+-- 8.2 Data declarations
+--
+-- A completely new type.
+--
+-- The following declares that the type Bool comprises two new values, True and False.
+--
+-- data Bool = True | Flase
+--   // here '|' is or and the values are called 'constructors' (they must be capitalized),
+--      also more than one construtor name cannot be used in more than one type.
+--  
+-- data Move = North | South | East | West
+--
+-- move :: Move -> Pos -> Pos
+-- move North (x,y) = (x,y+1)
+-- move South (x,y) = (x,y-1)
+-- move East (x,y)  = (x+1,y)
+-- move West (x,y)  = (x-1,y)
+--
+-- moves :: [Move] -> Pos -> Pos
+-- moves [] p = p
+-- moves (m:ms) p = moves ms (move m p)
+--
+-- rev :: Move -> Move
+-- rev North = South
+-- rev South = North
+-- rev East = West
+-- rev West = East
+--
+-- The constructors of data declaration can have arguments
+-- data Shape = Circle Float | Rect Float Float
+--
+-- square :: Float -> Shape
+-- square n = Rect n n
+--
+-- area :: Shape -> Float
+-- area (Circle r) = pi * r^2
+-- area (Rect x y) = x * y
+--
+-- The difference between normal functions and constructors in Haskell is that the latter have no defining equations.
+-- For instance the equation `negate 1.0` can be evaluated to `-1.0`, the expression `Rect 2 3` is already fully evaluated.
+--
+-- data constructors themselves can have arguments as follows.
+-- data Maybe a = Nothing | Just a
+--
+--   // The above type states that the value of type `Maybe a` is either `Nothing` or `Maybe a`
+--
+-- safediv :: Int -> Int -> Maybe Int
+-- safediv _ 0 = Nothing
+-- safediv a b = Just (a `div` b)
+--
+-- safehead :: [a] -> Maybe a
+-- safehead [] = Nothing
+-- safehead (x:xs) = Just x
+--
+-- 8.3 Newtype Declarations
+-- If a new type has a single construstor with a single argument, then it can be declared using the newtype mechanism.
+--
+-- newtype Nat = N Int
+--   // The constructor N takes a single argument of type Int (the task of ensuring its non-negative is upto the programmer)
+--
+-- How is this any different from the following?
+--
+-- type Nat = Int
+-- data Nat = N Int
+--
+-- First, `newtype` rather than type means that `Nat` and `Int` are different (useful property to catch more bugs statically)
+-- Second, using `newtype` rather than `data` brings efficiency benefit, because `newtype` constructors such as `N` do not incur
+--   any cost when the programs are evaluated, as they are automatically removed by the compiler once the type checking is completed.
+--   In short, `newtype` helps improve type safety without affecting performance.
+--
+-- 8.4 Recursive Types
+--
+-- New types declared using `data` and `newtype` can also be recursive.
+--
+-- data Nat = Zero | Succ Nat
+--
+-- nat2int :: Nat -> Int
+-- nat2int Zero = 0
+-- nat2int (Succ x) = 1 + nat2int x
+--
+-- int2nat :: Int -> Nat
+-- int2nat 0 = Zero
+-- int2nat n = Succ (int2nat (n - 1))
+--
+-- add :: Nat -> Nat -> Nat
+-- add x y = int2nat (nat2int x + nat2int y)
+--
+-- // or
+--
+-- addNat :: Nat -> Nat -> Nat
+-- addNat Zero y = y
+-- addNat (Succ x) y = Succ (addNat x y)
+--
+-- Declaring our own lists
+-- data List a = Null | Cons a (List a)
+
+-- testObj :: List Int
+-- testObj = Cons 10 (Cons 11 Null)
+
+-- len :: List Int -> Int
+-- len Null = 0
+-- len (Cons _ b) = 1 + len b
+--
+-- data Tree a = Leaf a | Node (Tree a) a (Tree a)
+--               deriving (Eq, Ord)
+-- t :: Tree Int
+-- t = Node (Node (Leaf 1) 3 (Leaf 4)) 5 (Node (Leaf 6) 7 (Leaf 9))
+
+-- occurs :: Eq a => a -> Tree a -> Bool
+-- occurs a (Leaf x) = a == x
+-- occurs a (Node lt x rt) = a == x || occurs a lt || occurs a rt 
+
+-- flatten :: Tree a -> [a]
+-- flatten (Leaf x) = [x]
+-- flatten (Node lt x rt) = flatten lt ++ [x] ++ flatten rt 
+
+-- occursBS :: Ord a => Eq a => a -> Tree a -> Bool
+-- occursBS a (Leaf x) = a == x
+-- occursBS a (Node lt x rt) | a == x    = True
+--                          | a > x     = occursBS a rt
+--                          | otherwise = occursBS a lt
+--
+-- 8.5 Class and instance declarations
+--
+-- The following code shows how the class `Eq` is declared in Haskell.
+--
+-- class Eq a where
+--   (==), (/=) :: a -> a -> Bool
+--
+--   x /= y = not (x == y)
+--
+-- In the eq class, we dont need to define `/=` because it is already defined.
+-- 
+-- Instance Eq Bool where
+--   False == False = True
+--   True  == True  = True
+--   _     == _     = False
+--
+-- Only types that are declared using `data` and `datatype` mechanisms can be made into instances
+-- of classes (default definitions can be overridden by instance declarations if desired.
+--
+--
+-- The following shows how the class `Ord` extends `Eq`.
+--
+--class Eq a => Ord a where
+--  (<), (<=), (>), (>=) :: a -> a -> Bool
+--  min, max             :: a -> a -> a
+--  min x y | x <= y = x
+--          | otherwise = y
+--  max x y | x <= y = y
+--          | otherwise = x
+
+ 
+-- Defining `Bool` as a `Ord` type requires the following instantiation.
+--
+
+-- data MBool = MTrue | MFalse 
+
+-- instance Eq MBool where
+--   MTrue == MTrue  = True
+--   MTrue == MFalse = True
+--   _     == _      = False
+
+-- instance Ord MBool where
+--   MFalse < MTrue = True
+--   _      < _    = False
+  
+--   a <= b = a == b || a < b
+--   a > b  = b < a
+--   a >= b = a == b || a > b
+
+
+-- Subsection: Derived Instances
+--
+-- In the standard prelude the type for Bool is declared as
+-- data Bool = False | true
+--             deriving (Eq, Ord, Show, Read)
+--
+-- data Shape = Circle Float | Rect Float Float
+--              deriving (Eq, Ord)
+
+
+
+-- Solutions begin here
+-- Q1
+data Nat = Zero | Succ Nat
+nat2int :: Nat -> Int
+nat2int Zero = 0
+nat2int (Succ x) = 1 + nat2int x
+addNat :: Nat -> Nat -> Nat
+addNat Zero x = x
+addNat (Succ x) y = addNat x (Succ y)
+multNat :: Nat -> Nat -> Nat
+multNat Zero _ = Zero
+multNat _ Zero = Zero
+multNat (Succ Zero) x = x
+multNat (Succ x)    y = addNat y (multNat x y)
+
+-- Q2
+-- data Ordering = LT | EQ | GT
+-- compare :: Ord a => a -> a-> Ordering
+
+-- Default implementation using guards
+-- occurs x (Node l y r) | x == y = True
+--                       | x < y  = occurs x l
+--                       | otherwise = occurs x r
+
+-- Version using pattern matching
+-- This versions is better because it always only requires one comparison
+-- while the previous version might have required two comparisons
+occurs :: Ord a => a -> Tree a -> Bool
+data Tree a = Leaf a | Node (Tree a) a (Tree a)
+occurs x (Leaf y)   = x == y
+occurs x (Node l y r) = case compare x y of
+                        EQ -> True
+                        LT -> occurs x l
+                        GT -> occurs x r  
+-- Q3
+data Q3Tree a = Q3Leaf a | Q3Node (Q3Tree a) (Q3Tree a)
+                deriving Show
+numLeaves :: Q3Tree a -> Int
+numLeaves (Q3Leaf _) = 1
+numLeaves (Q3Node x y) = numLeaves x + numLeaves y
+
+balanced :: Q3Tree a -> Bool
+
+balanced (Q3Leaf _) = True
+balanced (Q3Node lt rt) = abs (numLeaves lt - numLeaves rt) <= 1 && balanced lt && balanced rt
+
+-- Q4
+split :: [a] -> ([a],[a])
+split xs = (take half xs, drop half xs) where half = length xs `div` 2
+
+balance :: [a] -> Q3Tree a
+balance [x] = (Q3Leaf x)
+balance xs = Q3Node (balance leftHalf) (balance rightHalf) where (leftHalf,rightHalf) = split xs
+
+-- Q5
+data Expr = Val Int | Add Expr Expr
+
+folde :: (Int -> a) -> (a->a->a) -> Expr -> a
+folde f g (Val x)   = f x
+folde f g (Add x y) = g (folde f g x) (folde f g y)
+
+-- Q6
+eval :: Expr -> Int 
+eval = folde (\x -> x) (\x y -> x + y)
+
+size :: Expr -> Int
+size = folde (\_ -> 1) (\x y -> x + y)
+
+-- Q7
+data MMaybe a = MNothing | MJust a
+
+instance Eq a => Eq (MMaybe a) where
+  MNothing == MNothing   = True
+  (MJust x) == (MJust y) = x == y
+  _        == _        = False
+
+data MList a = Null | Cons a (MList a)                                                                                                                                  
+-- Using a different list class, as Eq a => Eq [a] is already defined in GHC.Classes
+instance Eq a => Eq (MList a) where
+  Null == Null = True
+  Null == _    = False
+  _  == Null   = False
+  (Cons x xs) == (Cons y ys) = (x == y) && (xs == ys)
+
+-- l = Cons 10 (Cons 11 Null)
+-- r = Cons 10 (Cons 11 Null)
+-- l == r
+
+-- Q8, Q9
+
